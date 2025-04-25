@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 图标库 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <title>Fitness Advisor</title>
+    <style>
+        /* 引入 Inter 字体 */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to bottom right, #f0f9ff, #cbebff);
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+
+       .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 40px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.05);
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+       .header h1 {
+            animation: bounce 1.5s infinite alternate;
+        }
+
+        @keyframes bounce {
+            from {
+                transform: translateY(0);
+            }
+
+            to {
+                transform: translateY(-10px);
+            }
+        }
+
+       .funny-img img {
+            animation: shake 1s infinite ease-in-out;
+        }
+
+        @keyframes shake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            10%,
+            30%,
+            50%,
+            70%,
+            90% {
+                transform: translateX(-5px);
+            }
+
+            20%,
+            40%,
+            60%,
+            80% {
+                transform: translateX(5px);
+            }
+        }
+
+       .error-message {
+            color: red;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mx-auto p-8 bg-white/90 rounded-2xl shadow-xl animate-fadeIn">
+        <div class="header text-center mb-12">
+            <h1 class="text-6xl font-bold text-blue-600 drop-shadow-md animate-bounce">Fitness Advisor</h1>
+            <p class="text-lg text-gray-600 leading-relaxed">想知道自己离“肌肉猛男”或“火辣身材”还有多远吗？快来测一测，别像某些只在网上“嘴炮”健身的人，咱们用数据说话！</p>
+        </div>
+        <div class="form-container bg-white p-8 rounded-xl shadow-md mb-12">
+            <form id="inputForm">
+                <div class="form-group mb-6">
+                    <label for="height" class="block text-lg font-bold text-gray-800 mb-2">身高 (cm):</label>
+                    <input type="number" id="height" class="w-full p-4 border-2 border-gray-300 rounded-lg text-base focus:border-blue-600 focus:ring-blue-200 focus:outline-none transition-all">
+                    <p class="error-message" id="heightError"></p>
+                </div>
+                <div class="form-group mb-6">
+                    <label for="weight" class="block text-lg font-bold text-gray-800 mb-2">体重 (kg):</label>
+                    <input type="number" id="weight" class="w-full p-4 border-2 border-gray-300 rounded-lg text-base focus:border-blue-600 focus:ring-blue-200 focus:outline-none transition-all">
+                    <p class="error-message" id="weightError"></p>
+                </div>
+                <div class="form-group mb-6">
+                    <label for="age" class="block text-lg font-bold text-gray-800 mb-2">年龄:</label>
+                    <input type="number" id="age" class="w-full p-4 border-2 border-gray-300 rounded-lg text-base focus:border-blue-600 focus:ring-blue-200 focus:outline-none transition-all">
+                    <p class="error-message" id="ageError"></p>
+                </div>
+                <div class="form-group mb-8">
+                    <label for="injuries" class="block text-lg font-bold text-gray-800 mb-2">历史伤病:</label>
+                    <input type="text" id="injuries" class="w-full p-4 border-2 border-gray-300 rounded-lg text-base focus:border-blue-600 focus:ring-blue-200 focus:outline-none transition-all">
+                </div>
+                <button type="submit" class="submit-button w-full p-5 bg-blue-600 text-white rounded-lg text-lg font-bold hover:bg-blue-700 shadow-md transition-all">
+                    提交
+                </button>
+            </form>
+            <div class="funny-img text-center my-8">
+                <img src="https://source.unsplash.com/random/400x400/?fitness-fun" alt="健身搞笑图片" class="mx-auto max-w-md rounded-2xl shadow-lg animate-shake">
+            </div>
+            <p class="funny-text text-lg text-gray-600 text-center mb-8">健身的路上，别做“思想上的巨人，行动上的矮子”，赶紧动起来呀！</p>
+        </div>
+        <div id="result" class="result-container bg-white p-8 rounded-xl shadow-md hidden">
+            <h2 class="text-4xl font-bold text-gray-800 text-center mb-8">评估结果</h2>
+            <p id="bodyStatus" class="text-lg text-gray-600 leading-relaxed mb-5"></p>
+            <p id="weightGap" class="text-lg text-gray-600 leading-relaxed mb-5"></p>
+            <p id="exerciseAdvice" class="text-lg text-gray-600 leading-relaxed mb-5"></p>
+            <p id="dietAdvice" class="text-lg text-gray-600 leading-relaxed mb-5"></p>
+            <div class="chart-container text-center mt-10" id="chart"></div>
+        </div>
+    </div>
+    <script>
+        const form = document.getElementById('inputForm');
+        const resultDiv = document.getElementById('result');
+        const bodyStatus = document.getElementById('bodyStatus');
+        const weightGap = document.getElementById('weightGap');
+        const exerciseAdvice = document.getElementById('exerciseAdvice');
+        const dietAdvice = document.getElementById('dietAdvice');
+        const chartDiv = document.getElementById('chart');
+        const heightError = document.getElementById('heightError');
+        const weightError = document.getElementById('weightError');
+        const ageError = document.getElementById('ageError');
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            // 清除之前的错误信息
+            heightError.textContent = '';
+            weightError.textContent = '';
+            ageError.textContent = '';
+
+            const height = parseFloat(document.getElementById('height').value);
+            const weight = parseFloat(document.getElementById('weight').value);
+            const age = parseInt(document.getElementById('age').value);
+            const injuries = document.getElementById('injuries').value;
+
+            let hasError = false;
+            if (isNaN(height) || height <= 0) {
+                heightError.textContent = '请输入有效的身高';
+                hasError = true;
+            }
+            if (isNaN(weight) || weight <= 0) {
+                weightError.textContent = '请输入有效的体重';
+                hasError = true;
+            }
+            if (isNaN(age) || age <= 0) {
+                ageError.textContent = '请输入有效的年龄';
+                hasError = true;
+            }
+
+            if (hasError) {
+                return;
+            }
+
+            // 计算BMI
+            const bmi = weight / ((height / 100) * (height / 100));
+            let status = '';
+            if (bmi < 18.5) {
+                status = '体重过轻';
+            } else if (bmi >= 18.5 && bmi < 24) {
+                status = '正常体重';
+            } else if (bmi >= 24 && bmi < 28) {
+                status = '超重';
+            } else {
+                status = '肥胖';
+            }
+            bodyStatus.textContent = `你的身体状态: ${status} (BMI: ${bmi.toFixed(2)})`;
+
+            // 计算标准体重（简单公式：男性标准体重(kg) = 身高(cm) - 105；女性暂按相同公式）
+            const standardWeight = height - 105;
+            const gap = weight - standardWeight;
+            weightGap.textContent = `距离标准体重的差距: ${gap.toFixed(2)} kg`;
+
+            // 锻炼建议
+            let exercise = '';
+            if (status === '体重过轻') {
+                exercise = '嘿，太瘦可不行呀！别再做“纸片人”了，赶紧像专业健身选手一样投入力量训练，比如举重、俯卧撑，努力增加肌肉量。每周至少来个3次，每次30到60分钟，让自己强壮起来！';
+            } else if (status === '正常体重') {
+                exercise = '保持得不错哟，继续像健身界的“模范生”一样，坚持适度的有氧运动和力量训练，像跑步、游泳、哑铃操都可以安排上。每周3到5次，每次30到60分钟，维持住这完美状态！';
+            } else if (status === '超重' || status === '肥胖') {
+                exercise = '身上的肉肉有点多咯，别再做“沙发土豆”啦！赶紧增加有氧运动的时间和频率，像风一样地快走、骑自行车，燃烧那些多余的脂肪。每周至少5次，每次30到60分钟。也别忘记搭配少量力量训练，可别光嘴上喊减肥哦。';
+            }
+            if (injuries) {
+                exercise += ` 考虑到你有 ${injuries} 伤病史，千万要避免相关部位的过度运动，最好在专业人士的指导下锻炼，别为了一时的冲动而受伤哦。`;
+            }
+            exerciseAdvice.textContent = `锻炼建议: ${exercise}`;
+
+            // 饮食建议
+            let diet = '';
+            if (status === '体重过轻') {
+                diet = '别再做“小鸟胃”啦！多吃点富含蛋白质、碳水化合物和健康脂肪的食物，比如鸡胸肉、香喷喷的米饭、营养满满的坚果。一日三餐要规律，还可以适当加餐，让自己“膨胀”起来，拥有迷人的身材。';
+            } else if (status === '正常体重') {
+                diet = '继续保持均衡饮食，做个“健康饮食达人”！多吃新鲜的蔬菜、多汁的水果、全谷物食品和优质蛋白质。控制好油脂和糖分的摄入，享受美食的同时也维持好身材，加油哦！';
+            } else if (status === '超重' || status === '肥胖') {
+                diet = '高热量、高脂肪和高糖的食物就别再贪吃啦，不然就成“胖墩”咯！多吃蔬菜、水果和富含膳食纤维的食物，控制每餐的量，别暴饮暴食。记住，管住嘴才能迈开腿，向理想身材前进！';
+            }
+            dietAdvice.textContent = `饮食建议: ${diet}`;
+
+            // 简单的BMI图表（使用Chart.js）
+            const ctx = document.createElement('canvas');
+            chartDiv.appendChild(ctx);
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['你的BMI', '标准BMI范围'],
+                    datasets: [{
+                        label: 'BMI值',
+                        data: [bmi, 22], // 标准BMI暂设为22
+                        backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(54, 162, 235, 0.2)'],
+                        borderColor: ['rgba(75, 192, 192, 1)', 'rgba(54, 162, 235, 1)'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            resultDiv.classList.remove('hidden');
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+
+</html>
